@@ -2,21 +2,28 @@
 import express from "express";
 import dotenv from "dotenv";
 import { connectDB } from "../config/db.js";
-
+import authRoutes from "./routes/auth.js";
+import postRoutes from "./routes/post.js";
 
 dotenv.config();
 
 const app = express();
 
-// Connect to database
-connectDB();
-
-// Middleware
 app.use(express.json());
 
-// Routes
+(async () => {
+  const db = await connectDB();
 
+  app.use("/api/auth", (req, res, next) => {
+    req.db = db;
+    next();
+  }, authRoutes);
 
-const PORT = process.env.PORT || 5000;
+  app.use("/api/posts", (req, res, next) => {
+    req.db = db;
+    next();
+  }, postRoutes);
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+})();
